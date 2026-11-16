@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useConfig } from './lib/config';
 import type { Q } from './lib/engine';
+import { applyTheme, readTheme, toggleTheme, type Theme } from './lib/theme';
 import Practice from './components/Practice';
 import Tournament from './components/Tournament';
 import Progress from './components/Progress';
@@ -10,6 +11,7 @@ import ArrangementList from './components/arrangement/ArrangementList';
 import ArrangementPuzzle from './components/arrangement/ArrangementPuzzle';
 import TopicList from './components/topics/TopicList';
 import TopicQuiz from './components/topics/TopicQuiz';
+import { getTopic } from './lib/topicBank';
 
 const TABS = [
   ['learn', 'Learn', 'M4 5.5h11a2 2 0 0 1 2 2v12H6.5A2.5 2.5 0 0 0 4 22V7.5A2 2 0 0 1 6 5.5zM4 7.5V19'],
@@ -49,6 +51,11 @@ export default function App() {
   const [route, setRoute] = useState(readRoute);
   const { tab, param } = route;
   const [session, setSession] = useState<Session | null>(null);
+  const [theme, setTheme] = useState<Theme>(() => readTheme());
+
+  useEffect(() => {
+    applyTheme(theme);
+  }, [theme]);
 
   useEffect(() => {
     const onHash = () => {
@@ -66,30 +73,53 @@ export default function App() {
   const retry = useCallback((qs: Q[]) => setSession(s => (s ? { ...s, key: s.key + 1, qs } : s)), []);
 
   const navOn = tab === 'arrangements' || tab === 'topics' ? 'practice' : tab;
+  const topicLive = tab === 'topics' && param ? getTopic(param) : undefined;
+  const inLesson = Boolean(session || topicLive);
   const heading = session
     ? ([session.title, session.tourney ? 'Tournament' : 'Practice'] as [string, string])
-    : (TITLES[tab] ?? TITLES.practice!);
+    : topicLive
+      ? ([topicLive.topic, `${topicLive.questions.length} questions`] as [string, string])
+      : (TITLES[tab] ?? TITLES.practice!);
   const [title, blurb] = heading;
 
   return (
-    <div className="app">
+    <div className={`app ${inLesson ? 'in-lesson' : ''}`}>
       <aside className="side">
-        <a className="logo" href="#practice" aria-label="RRB Prep">
-          R
+        <a className="logo" href="#practice" aria-label="CrackIt">
+          C
         </a>
         {TABS.map(([id, label, d]) => (
           <button key={id} className={`navbtn ${navOn === id ? 'on' : ''}`} title={label} aria-label={label} onClick={() => (location.hash = id)}>
             <Glyph d={d} />
           </button>
         ))}
+        <button
+          className="navbtn theme-toggle"
+          title={theme === 'light' ? 'Dark mode' : 'Light mode'}
+          aria-label={theme === 'light' ? 'Switch to dark mode' : 'Switch to light mode'}
+          onClick={() => setTheme(t => toggleTheme(t))}
+        >
+          {theme === 'light' ? (
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+              <path d="M21 14.5A8.5 8.5 0 1 1 9.5 3 7 7 0 0 0 21 14.5z" />
+            </svg>
+          ) : (
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+              <circle cx="12" cy="12" r="4" />
+              <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41" />
+            </svg>
+          )}
+        </button>
       </aside>
       <div className="maincol">
-        <header className="pagehead">
-          <div>
-            <h1>{title}</h1>
-            <p>{blurb}</p>
-          </div>
-        </header>
+        {!inLesson && (
+          <header className="pagehead">
+            <div>
+              <h1>{title}</h1>
+              <p>{blurb}</p>
+            </div>
+          </header>
+        )}
         {session ? (
           <QuizRunner key={session.key} session={session} onExit={exit} onRetry={retry} />
         ) : tab === 'arrangements' ? (

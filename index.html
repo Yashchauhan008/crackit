@@ -3,9 +3,21 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="color-scheme" content="light">
-<meta name="theme-color" content="#f6f7f6">
-<title>RRB Prep – Quick Maths Practice</title>
+<meta name="color-scheme" content="light dark">
+<meta name="theme-color" content="#f3f0f8">
+<title>CrackIt – Quick Maths Practice</title>
+<script>
+(function () {
+  try {
+    var t = localStorage.getItem('crackit.theme');
+    if (t !== 'light' && t !== 'dark') {
+      t = matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+    }
+    document.documentElement.setAttribute('data-theme', t);
+    document.documentElement.style.colorScheme = t;
+  } catch (e) {}
+})();
+</script>
 </head>
 <body>
 <div id="root"></div>

@@ -15,7 +15,9 @@ type Props = {
 /** Local numbers for a quiz card: answered, accuracy, and how many questions are still red. */
 function quizStats(id: string) {
   const stats = loadStats();
-  let right = 0, wrong = 0, toFix = 0;
+  let right = 0,
+    wrong = 0,
+    toFix = 0;
   for (const [k, s] of Object.entries(stats)) {
     if (!k.startsWith(`${id}:`)) continue;
     right += s.r;
@@ -27,7 +29,7 @@ function quizStats(id: string) {
 }
 
 export default function Practice({ cfg, update, start }: Props) {
-  const [open, setOpen] = useState<string | null>(null); // which card shows its number grid
+  const [open, setOpen] = useState<string | null>(null);
   const [revealed, setRevealed] = useState<Set<string>>(new Set());
   const toggle = (k: string) =>
     setRevealed(s => {
@@ -68,13 +70,19 @@ export default function Practice({ cfg, update, start }: Props) {
               </span>
             </div>
             <div className="meta">
-              <div><span>Questions</span><b>{t.questions.length}</b></div>
-              <div><span>Solutions</span><b>{t.questions.filter(q => q.solution).length}</b></div>
+              <div>
+                <span>Questions</span>
+                <b>{t.questions.length}</b>
+              </div>
+              <div>
+                <span>Solutions</span>
+                <b>{t.questions.filter(q => q.solution).length}</b>
+              </div>
             </div>
-            <h3>{t.section}</h3>
-            <p className="blurb">From all 7 Clerk and PO 2025 papers. Repeated questions are kept once.</p>
             <div className="offer-actions">
-              <a className="btn" href={`#topics/${t.id}`}>Start</a>
+              <a className="btn" href={`#topics/${t.id}`}>
+                Learn
+              </a>
             </div>
           </article>
         ))}
@@ -88,14 +96,24 @@ export default function Practice({ cfg, update, start }: Props) {
             <span className="pill info">Reasoning</span>
           </div>
           <div className="meta">
-            <div><span>Type</span><b>Seating</b></div>
-            <div><span>Solve</span><b>Animated</b></div>
+            <div>
+              <span>Type</span>
+              <b>Seating</b>
+            </div>
+            <div>
+              <span>Solve</span>
+              <b>Animated</b>
+            </div>
           </div>
           <h3>Linear and circular puzzles</h3>
           <p className="blurb">RRB memory-paper sets plus short drills. Answer the questions, then watch each clue place people.</p>
           <div className="offer-actions">
-            <a className="btn ghost" href="#learn/arrangements">Study</a>
-            <a className="btn" href="#arrangements">Open</a>
+            <a className="btn ghost" href="#learn/arrangements">
+              Study
+            </a>
+            <a className="btn" href="#arrangements">
+              Open
+            </a>
           </div>
         </article>
 
@@ -114,17 +132,29 @@ export default function Practice({ cfg, update, start }: Props) {
                 <span className={`pill ${tone}`}>{st.accuracy == null ? 'New' : `${st.accuracy}%`}</span>
               </div>
               <div className="meta">
-                <div><span>Answered</span><b>{st.answered}</b></div>
-                <div><span>To fix</span><b>{st.toFix}</b></div>
+                <div>
+                  <span>Answered</span>
+                  <b>{st.answered}</b>
+                </div>
+                <div>
+                  <span>To fix</span>
+                  <b>{st.toFix}</b>
+                </div>
               </div>
-              <h3>{Q.tag} {range[0]} to {range[1]}</h3>
+              <h3>
+                {Q.tag} {range[0]} to {range[1]}
+              </h3>
               <p className="blurb">{total} numbers in this range.</p>
               <div className="row qrange">
                 <RangeInputs value={range} onChange={r => setRange(id, r)} />
-                <button className="link" onClick={() => setRange(id, [Q.min, Q.max])}>Reset</button>
+                <button className="link" onClick={() => setRange(id, [Q.min, Q.max])}>
+                  Reset
+                </button>
               </div>
               <div className="offer-actions">
-                <a className="btn ghost" href={`#learn/${id}`}>Study</a>
+                <a className="btn ghost" href={`#learn/${id}`}>
+                  Study
+                </a>
                 <button
                   className="btn"
                   onClick={() => {
@@ -144,7 +174,6 @@ export default function Practice({ cfg, update, start }: Props) {
                   <div className="grid">
                     {pool(range).map(n => {
                       const k = `${id}:${n}`;
-                      // red only while the most recent answer was wrong; one correct answer clears it
                       const cls = stats[k]?.last === false ? 'weak' : '';
                       return (
                         <button key={k} className={`tile ${cls}`} onClick={() => toggle(k)} title={`Tap to show ${Q.label(n)}`}>
