@@ -5,7 +5,9 @@ import type { ArrangementQuestion } from '../../lib/arrangements/types';
 import { loadStats, saveStats } from '../../lib/storage';
 import { getTopicNotes } from '../../lib/topicNotes';
 import { saveAttempt, uuid, type AnswerLog } from '../../lib/api';
+import { arrangementQuestionKey } from '../../lib/favorites';
 import { useSolveTimerQuestion } from '../SolveTimer';
+import FavoriteStar from '../FavoriteStar';
 import SolvePlayer from './SolvePlayer';
 import SeatDiagram from './SeatDiagram';
 import { seatsFinal } from '../../lib/arrangements/state';
@@ -80,7 +82,7 @@ export default function ArrangementPuzzle({ puzzleId, onBack }: Props) {
   );
 
   const openId = puzzle ? (expanded ?? puzzle.questions[0]?.id ?? null) : null;
-  useSolveTimerQuestion(puzzle && openId ? `arrangements:${puzzle.id}:${openId}` : null);
+  useSolveTimerQuestion(puzzle && openId ? arrangementQuestionKey(puzzle.id, openId) : null);
 
   if (!puzzle) {
     return (
@@ -141,25 +143,31 @@ export default function ArrangementPuzzle({ puzzleId, onBack }: Props) {
               const status = locked ? (given === q.answerIndex ? 'right' : 'wrong') : '';
               return (
                 <article className={`topic-q-item ${isOpen ? 'open' : ''} ${status}`} key={q.id}>
-                  <button
-                    type="button"
-                    className="topic-q-summary"
-                    onClick={() => setExpanded(isOpen ? null : q.id)}
-                    aria-expanded={isOpen}
-                  >
-                    <span className="topic-q-num">{qi + 1}</span>
-                    <span className="topic-q-preview">
-                      <strong>{q.text}</strong>
-                      <small>
-                        {locked ? (given === q.answerIndex ? 'Correct' : 'Wrong') : 'Tap to answer'}
-                      </small>
-                    </span>
-                    <span className={`topic-q-chevron ${isOpen ? 'open' : ''}`} aria-hidden>
-                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
-                        <path d="M6 9l6 6 6-6" />
-                      </svg>
-                    </span>
-                  </button>
+                  <div className="topic-q-head">
+                    <button
+                      type="button"
+                      className="topic-q-summary"
+                      onClick={() => setExpanded(isOpen ? null : q.id)}
+                      aria-expanded={isOpen}
+                    >
+                      <span className="topic-q-num">{qi + 1}</span>
+                      <span className="topic-q-preview">
+                        <strong>{q.text}</strong>
+                        <small>
+                          {locked ? (given === q.answerIndex ? 'Correct' : 'Wrong') : 'Tap to answer'}
+                        </small>
+                      </span>
+                      <span className={`topic-q-chevron ${isOpen ? 'open' : ''}`} aria-hidden>
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M6 9l6 6 6-6" />
+                        </svg>
+                      </span>
+                    </button>
+                    <FavoriteStar
+                      questionKey={arrangementQuestionKey(puzzle.id, q.id)}
+                      className="topic-q-fav"
+                    />
+                  </div>
 
                   {isOpen && (
                     <div className="topic-q-body">

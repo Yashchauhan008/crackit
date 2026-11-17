@@ -4,7 +4,9 @@ import { getTopic, type TopicQuestion, type TopicSet } from '../../lib/topicBank
 import { needsMissingFigure, usableQuestions } from '../../lib/questionContext';
 import { getTopicNotes } from '../../lib/topicNotes';
 import { loadStats, saveStats } from '../../lib/storage';
+import { isFavorite, topicQuestionKey } from '../../lib/favorites';
 import { useSolveTimerQuestion } from '../SolveTimer';
+import FavoriteStar from '../FavoriteStar';
 import QuestionMedia from './QuestionMedia';
 
 type Props = { topicId: string; onBack: () => void };
@@ -165,10 +167,18 @@ function LearnMode({
   onBack: () => void;
 }) {
   const [showIncomplete, setShowIncomplete] = useState(false);
-  const list = showIncomplete ? topic.questions : practicePool;
+  const [showFavorites, setShowFavorites] = useState(false);
+  const [favTick, setFavTick] = useState(0);
+  const baseList = showIncomplete ? topic.questions : practicePool;
+  const list = useMemo(() => {
+    if (!showFavorites) return baseList;
+    return baseList.filter(q => isFavorite(topicQuestionKey(topic.id, q.id)));
+    // favTick forces re-filter after starring
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [baseList, showFavorites, topic.id, favTick]);
   const counts = useMemo(() => quizCounts(Math.max(practicePool.length, 1)), [practicePool.length]);
   const [expanded, setExpanded] = useState<string | null>(list[0]?.id ?? null);
-  useSolveTimerQuestion(expanded ? `topics:${topic.id}:${expanded}` : null);
+  useSolveTimerQuestion(expanded ? topicQuestionKey(topic.id, expanded) : null);
   const notesHtml = useMemo(() => {
     const md = getTopicNotes(topic.id);
     if (!md) return '';
@@ -177,7 +187,7 @@ function LearnMode({
 
   useEffect(() => {
     setExpanded(list[0]?.id ?? null);
-  }, [topic.id, showIncomplete]);
+  }, [topic.id, showIncomplete, showFavorites]);
 
   const choose = (q: TopicQuestion, label: string) => {
     if (picked[q.id] || needsMissingFigure(q)) return;
@@ -214,6 +224,14 @@ function LearnMode({
               Show incomplete
             </label>
           )}
+          <label className="topic-incomplete-toggle">
+            <input
+              type="checkbox"
+              checked={showFavorites}
+              onChange={e => setShowFavorites(e.target.checked)}
+            />
+            Favourites
+          </label>
           <label className="field">
             Quiz size
             <select
@@ -236,7 +254,13 @@ function LearnMode({
 
       <div className="topic-learn-split">
       <div className="topic-q-list">
-        {!list.length && (
+        {!list.length && showFavorites && (
+          <div className="card topic-missing-banner">
+            <strong>No favourites in this list yet.</strong>
+            <p>Tap the star on a question to save it here.</p>
+          </div>
+        )}
+        {!list.length && !showFavorites && (
           <div className="card topic-missing-banner">
             <strong>No complete questions in this topic yet.</strong>
             <p>
@@ -262,26 +286,33 @@ function LearnMode({
                 : '';
           return (
             <article className={`topic-q-item ${isOpen ? 'open' : ''} ${status}`} key={q.id}>
-              <button
-                type="button"
-                className="topic-q-summary"
-                onClick={() => setExpanded(isOpen ? null : q.id)}
-                aria-expanded={isOpen}
-              >
-                <span className="topic-q-num">{i + 1}</span>
-                <span className="topic-q-preview">
-                  <strong>{q.stem}</strong>
-                  <small>
-                    {missing ? 'Figure/series missing · ' : ''}
-                    {q.source}
-                  </small>
-                </span>
-                <span className={`topic-q-chevron ${isOpen ? 'open' : ''}`} aria-hidden>
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M6 9l6 6 6-6" />
-                  </svg>
-                </span>
-              </button>
+              <div className="topic-q-head">
+                <button
+                  type="button"
+                  className="topic-q-summary"
+                  onClick={() => setExpanded(isOpen ? null : q.id)}
+                  aria-expanded={isOpen}
+                >
+                  <span className="topic-q-num">{i + 1}</span>
+                  <span className="topic-q-preview">
+                    <strong>{q.stem}</strong>
+                    <small>
+                      {missing ? 'Figure/series missing · ' : ''}
+                      {q.source}
+                    </small>
+                  </span>
+                  <span className={`topic-q-chevron ${isOpen ? 'open' : ''}`} aria-hidden>
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M6 9l6 6 6-6" />
+                    </svg>
+                  </span>
+                </button>
+                <FavoriteStar
+                  questionKey={topicQuestionKey(topic.id, q.id)}
+                  className="topic-q-fav"
+                  onChange={() => setFavTick(n => n + 1)}
+                />
+              </div>
 
               {isOpen && (
                 <div className="topic-q-body">
@@ -387,7 +418,7 @@ function QuizMode({
 }) {
   const total = deck.length;
   const q = deck[Math.min(qi, Math.max(total - 1, 0))];
-  useSolveTimerQuestion(!done && q ? `topics:${topic.id}:${q.id}` : null);
+  useSolveTimerQuestion(!done && q ? topicQuestionKey(topic.id, q.id) : null);
   const given = q ? picked[q.id] : undefined;
   const locked = given !== undefined;
   const ok = locked && given === q!.answer;
@@ -457,6 +488,9 @@ function QuizMode({
       </div>
 
       <div className="card lesson-card">
+        <div className="lesson-fav-row">
+          <FavoriteStar questionKey={topicQuestionKey(topic.id, q.id)} />
+        </div>
         <QuestionMedia q={q} />
         <p className="lesson-source">{q.source}</p>
         <h2 className="lesson-stem">{q.stem}</h2>

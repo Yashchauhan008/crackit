@@ -31,8 +31,11 @@ export function useSolveTimerQuestion(key: string | null) {
   useEffect(() => {
     if (!ctx) return;
     ctx.setQuestionKey(key);
-    return () => ctx.setQuestionKey(null);
   }, [ctx, key]);
+  useEffect(() => {
+    if (!ctx) return;
+    return () => ctx.setQuestionKey(null);
+  }, [ctx]);
 }
 
 function useTimerCore(questionKey: string | null) {
@@ -41,7 +44,8 @@ function useTimerCore(questionKey: string | null) {
   const [lastMs, setLastMs] = useState<number | null>(() => readSolveTime(questionKey));
   const accum = useRef(0);
   const startedAt = useRef<number | null>(null);
-  const activeKey = useRef(questionKey);
+  const questionKeyRef = useRef(questionKey);
+  questionKeyRef.current = questionKey;
 
   const freeze = useCallback(() => {
     if (startedAt.current != null) {
@@ -63,24 +67,18 @@ function useTimerCore(questionKey: string | null) {
     return () => window.clearInterval(id);
   }, [status, tick]);
 
-  // Switching question: save in-progress time to the previous key, then show that question's last.
+  // Only refresh "Last" for the open question — never start/stop the clock.
   useEffect(() => {
-    const prev = activeKey.current;
-    if (prev && prev !== questionKey && (status === 'running' || status === 'paused')) {
-      const ms = freeze();
-      if (ms >= 500) saveSolveTime(prev, ms);
-      accum.current = 0;
-      setDisplayMs(0);
-      setStatus('idle');
-    }
-    activeKey.current = questionKey;
     setLastMs(readSolveTime(questionKey));
-    // intentionally only when the bound question changes
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [questionKey]);
 
   const start = useCallback(() => {
     if (status === 'running') return;
+    if (!questionKeyRef.current) return;
+    if (status === 'idle') {
+      accum.current = 0;
+      setDisplayMs(0);
+    }
     startedAt.current = Date.now();
     setStatus('running');
   }, [status]);
@@ -97,22 +95,15 @@ function useTimerCore(questionKey: string | null) {
     const ms = freeze();
     setDisplayMs(ms);
     setStatus('idle');
-    if (questionKey && ms >= 500) {
-      saveSolveTime(questionKey, ms);
+    const key = questionKeyRef.current;
+    if (key && ms >= 500) {
+      saveSolveTime(key, ms);
       setLastMs(ms);
     }
     accum.current = 0;
-  }, [status, freeze, questionKey]);
+  }, [status, freeze]);
 
-  const resetSoft = useCallback(() => {
-    freeze();
-    accum.current = 0;
-    startedAt.current = null;
-    setDisplayMs(0);
-    setStatus('idle');
-  }, [freeze]);
-
-  return { status, displayMs, lastMs, start, pause, stop, resetSoft, hasQuestion: Boolean(questionKey) };
+  return { status, displayMs, lastMs, start, pause, stop, hasQuestion: Boolean(questionKey) };
 }
 
 export function SideSolveTimer() {
@@ -122,6 +113,7 @@ export function SideSolveTimer() {
 
   const liveLabel = status === 'idle' ? null : fmtSolve(displayMs);
   const lastLabel = lastMs != null ? fmtSolve(lastMs) : null;
+  const canStop = status !== 'idle';
 
   return (
     <div className={`side-timer ${status}`} title={hasQuestion ? 'Solve timer for this question' : 'Open a question to time it'}>
@@ -141,7 +133,7 @@ export function SideSolveTimer() {
           type="button"
           className={`side-timer-btn pause ${status === 'paused' ? 'on' : ''}`}
           aria-label={status === 'paused' ? 'Paused' : 'Pause timer'}
-          disabled={!hasQuestion || status !== 'running'}
+          disabled={status !== 'running'}
           onClick={pause}
         >
           <svg width="14" height="14" viewBox="0 0 24 24" aria-hidden>
@@ -151,14 +143,14 @@ export function SideSolveTimer() {
         </button>
         <button
           type="button"
-          className={`side-timer-btn circle ${status !== 'idle' ? 'on' : ''}`}
+          className={`side-timer-btn circle ${canStop ? 'on' : ''}`}
           aria-label="Stop timer and save time"
-          disabled={!hasQuestion || status === 'idle'}
+          disabled={!canStop}
           onClick={stop}
         >
           <svg width="16" height="16" viewBox="0 0 24 24" aria-hidden>
             <circle cx="12" cy="12" r="7.5" fill="none" stroke="currentColor" strokeWidth="2.4" />
-            {status !== 'idle' && <circle cx="12" cy="12" r="3.2" fill="currentColor" />}
+            {canStop && <circle cx="12" cy="12" r="3.2" fill="currentColor" />}
           </svg>
         </button>
       </div>
