@@ -4,6 +4,7 @@ import { QUIZZES, quizName } from '../lib/quizzes';
 import { draw, makeQ, shuffle, type Q } from '../lib/engine';
 import type { Config } from '../lib/config';
 import { Seg, pct, secs, signed } from './ui';
+import PrepDashboard from './PrepDashboard';
 
 type Data = { ov: Overview; pr: ProgressData; ms: MistakeItem[] };
 type Props = { cfg: Config; start: (qs: Q[], title: string, tourney: boolean, rebuild?: () => Q[]) => void };
@@ -38,11 +39,11 @@ export default function Progress({ cfg, start }: Props) {
   if (error)
     return (
       <>
-        <h1>Progress</h1>
-        <div className="card">
+        <PrepDashboard />
+        <div className="card" style={{ marginTop: 18 }}>
           <b>Can't reach the server.</b>
           <p className="sub">
-            Practice still works; finished quizzes are saved here and synced later ({pending()} waiting). To see analytics, start the backend:{' '}
+            Prep tracking still works offline. Quiz analytics sync later ({pending()} waiting). Start backend:{' '}
             <code>cd backend && npm run dev</code>
           </p>
           <button className="btn" onClick={() => setTick(t => t + 1)}>
@@ -54,8 +55,10 @@ export default function Progress({ cfg, start }: Props) {
   if (!data)
     return (
       <>
-        <h1>Progress</h1>
-        <p className="sub">Loading…</p>
+        <PrepDashboard />
+        <p className="sub" style={{ marginTop: 18 }}>
+          Loading practice analytics…
+        </p>
       </>
     );
 
@@ -76,6 +79,9 @@ export default function Progress({ cfg, start }: Props) {
 
   return (
     <>
+      <PrepDashboard />
+
+      <h2 style={{ margin: '28px 0 6px' }}>Practice analytics</h2>
       <p className="sub">Finished quizzes are saved in this browser and synced when the server is up.</p>
       <div className="row" style={{ marginTop: 0 }}>
         <div className="field">

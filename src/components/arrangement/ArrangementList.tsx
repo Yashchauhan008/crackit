@@ -12,22 +12,27 @@ function puzzleStats(id: string) {
     right += s.r;
     wrong += s.w;
   }
-  return { answered: right + wrong, right };
+  const answered = right + wrong;
+  return { answered, right, accuracy: answered ? Math.round((right / answered) * 100) : null };
 }
 
 export default function ArrangementList({ onOpen, onBack }: Props) {
   return (
-    <>
-      <div className="cardhead" style={{ marginBottom: 14 }}>
-        <p className="sub" style={{ margin: 0 }}>Open a set, answer it, then press Solve.</p>
+    <div className="topic-learn" style={{ maxWidth: 960 }}>
+      <div className="topic-learn-bar card">
         <button className="btn ghost" onClick={onBack}>
           Back
         </button>
+        <div className="topic-learn-bar-copy">
+          <strong>Arrangements</strong>
+          <span>{ARRANGEMENTS.length} puzzles · answer MCQs, then watch Solve</span>
+        </div>
       </div>
 
       <div className="offer-grid">
         {ARRANGEMENTS.map(p => {
           const st = puzzleStats(p.id);
+          const tone = st.accuracy == null ? 'muted' : st.accuracy >= 70 ? 'good' : 'bad';
           return (
             <article className="offer" key={p.id}>
               <div className="offer-top">
@@ -35,25 +40,29 @@ export default function ArrangementList({ onOpen, onBack }: Props) {
                   <span className="mark">{p.layout === 'circular' ? '○' : '—'}</span>
                   <strong>{p.title}</strong>
                 </div>
-                <span className={`pill ${st.answered ? 'good' : 'muted'}`}>
-                  {st.answered ? `${Math.round((st.right / st.answered) * 100)}%` : 'New'}
-                </span>
+                <span className={`pill ${tone}`}>{st.accuracy == null ? 'New' : `${st.accuracy}%`}</span>
               </div>
               <div className="meta">
-                <div><span>Seats</span><b>{p.seatCount}</b></div>
-                <div><span>Questions</span><b>{p.questions.length}</b></div>
+                <div>
+                  <span>Seats</span>
+                  <b>{p.seatCount}</b>
+                </div>
+                <div>
+                  <span>Questions</span>
+                  <b>{p.questions.length}</b>
+                </div>
               </div>
               <h3>{layoutLabel(p)}</h3>
               {p.source && <p className="blurb">{p.source}</p>}
               <div className="offer-actions">
                 <button className="btn" onClick={() => onOpen(p.id)}>
-                  Open
+                  Learn
                 </button>
               </div>
             </article>
           );
         })}
       </div>
-    </>
+    </div>
   );
 }

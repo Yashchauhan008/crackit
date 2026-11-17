@@ -5,16 +5,15 @@ import { applyTheme, readTheme, toggleTheme, type Theme } from './lib/theme';
 import Practice from './components/Practice';
 import Tournament from './components/Tournament';
 import Progress from './components/Progress';
-import Learn from './components/Learn';
 import QuizRunner, { type Session } from './components/QuizRunner';
 import ArrangementList from './components/arrangement/ArrangementList';
 import ArrangementPuzzle from './components/arrangement/ArrangementPuzzle';
 import TopicList from './components/topics/TopicList';
 import TopicQuiz from './components/topics/TopicQuiz';
+import { getArrangement } from './lib/arrangements/puzzles';
 import { getTopic } from './lib/topicBank';
 
 const TABS = [
-  ['learn', 'Learn', 'M4 5.5h11a2 2 0 0 1 2 2v12H6.5A2.5 2.5 0 0 0 4 22V7.5A2 2 0 0 1 6 5.5zM4 7.5V19'],
   ['practice', 'Practice', 'M4 4h7v7H4zM13 4h7v7h-7zM4 13h7v7H4zM13 13h7v7h-7z'],
   ['tournament', 'Tournament', 'M8 4h8v3a4 4 0 0 1-8 0zM6 6H4a3 3 0 0 0 3 4M18 6h2a3 3 0 0 1-3 4M12 14v3M9 20h6'],
   ['progress', 'Progress', 'M4 19V10M10 19V5M16 19v-7M22 19H2'],
@@ -26,15 +25,16 @@ const readRoute = (): Route => {
   const [h, param] = location.hash.replace('#', '').split('/');
   if (h === 'arrangements') return { tab: 'arrangements', param };
   if (h === 'topics') return { tab: 'topics', param };
+  // old Learn tab removed — fall back to practice
+  if (h === 'learn') return { tab: 'practice' };
   return { tab: TABS.some(([t]) => t === h) ? (h as Tab) : 'practice', param };
 };
 
 const TITLES: Record<string, [string, string]> = {
-  learn: ['Learn', 'Study a topic, then quiz it.'],
   practice: ['Practice', 'Pick a set and start.'],
   tournament: ['Tournament', 'Mix the quizzes you select.'],
-  progress: ['Progress', 'What is improving, and what is not.'],
-  arrangements: ['Arrangements', 'Seating puzzles with a step-by-step solve.'],
+  progress: ['Progress', 'Prep checklist + practice analytics.'],
+  arrangements: ['Arrangements', 'Learn puzzles · notes on the right · Solve to animate.'],
   topics: ['Exam topics', 'One quiz per topic, taken from every 2025 paper.'],
 };
 
@@ -74,12 +74,16 @@ export default function App() {
 
   const navOn = tab === 'arrangements' || tab === 'topics' ? 'practice' : tab;
   const topicLive = tab === 'topics' && param ? getTopic(param) : undefined;
-  const inLesson = Boolean(session || topicLive);
+  const arrLive = tab === 'arrangements' && param ? getArrangement(param) : undefined;
+  // Immersive chrome only for timed drills / active quiz runner — topic learn keeps the page header
+  const inLesson = Boolean(session);
   const heading = session
     ? ([session.title, session.tourney ? 'Tournament' : 'Practice'] as [string, string])
     : topicLive
-      ? ([topicLive.topic, `${topicLive.questions.length} questions`] as [string, string])
-      : (TITLES[tab] ?? TITLES.practice!);
+      ? ([topicLive.topic, 'Practice questions · formulas on the right · quiz from the top bar.'] as [string, string])
+      : arrLive
+        ? ([arrLive.title, 'Answer questions · notes on the right · Solve to animate.'] as [string, string])
+        : (TITLES[tab] ?? TITLES.practice!);
   const [title, blurb] = heading;
 
   return (
@@ -134,12 +138,6 @@ export default function App() {
           ) : (
             <TopicList onOpen={id => (location.hash = `topics/${id}`)} onBack={() => (location.hash = 'practice')} />
           )
-        ) : tab === 'learn' ? (
-          <Learn
-            topicId={param}
-            onPick={id => (location.hash = `learn/${id}`)}
-            onQuiz={id => (location.hash = id === 'arrangements' ? 'arrangements' : 'practice')}
-          />
         ) : tab === 'tournament' ? (
           <Tournament cfg={cfg} update={update} start={start} />
         ) : tab === 'progress' ? (

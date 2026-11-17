@@ -108,9 +108,6 @@ export default function Practice({ cfg, update, start }: Props) {
           <h3>Linear and circular puzzles</h3>
           <p className="blurb">RRB memory-paper sets plus short drills. Answer the questions, then watch each clue place people.</p>
           <div className="offer-actions">
-            <a className="btn ghost" href="#learn/arrangements">
-              Study
-            </a>
             <a className="btn" href="#arrangements">
               Open
             </a>
@@ -152,9 +149,6 @@ export default function Practice({ cfg, update, start }: Props) {
                 </button>
               </div>
               <div className="offer-actions">
-                <a className="btn ghost" href={`#learn/${id}`}>
-                  Study
-                </a>
                 <button
                   className="btn"
                   onClick={() => {
