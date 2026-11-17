@@ -291,7 +291,12 @@ code{background:var(--raised);padding:1px 6px;border-radius:6px;font-size:.9em}
 .fav-star{width:36px;height:36px;border-radius:12px;border:0;background:transparent;color:var(--muted);display:grid;place-items:center;cursor:pointer;padding:0;flex-shrink:0}
 .fav-star:hover{color:var(--warm);background:var(--warm-bg)}
 .fav-star.on{color:var(--warm)}
+.fav-nav.on{background:var(--warm-bg);color:var(--warm)}
 .lesson-fav-row{display:flex;justify-content:flex-end;margin:-4px 0 6px}
+.fav-page-bar{display:flex;align-items:center;margin-bottom:16px}
+.fav-list{display:grid;gap:10px}
+.fav-row-link{text-decoration:none;color:inherit}
+.fav-row-kind{font-size:.72rem!important}
 .topic-q-num{width:32px;height:32px;border-radius:10px;display:grid;place-items:center;background:var(--raised);color:var(--muted);font-size:.82rem;font-weight:750}
 .topic-q-preview{min-width:0;display:flex;flex-direction:column;gap:4px}
 .topic-q-preview strong{font-size:.98rem;font-weight:600;line-height:1.4;white-space:pre-wrap;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}

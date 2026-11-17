@@ -10,6 +10,7 @@ import ArrangementList from './components/arrangement/ArrangementList';
 import ArrangementPuzzle from './components/arrangement/ArrangementPuzzle';
 import TopicList from './components/topics/TopicList';
 import TopicQuiz from './components/topics/TopicQuiz';
+import FavoritesPage from './components/FavoritesPage';
 import { SolveTimerProvider, SideSolveTimer } from './components/SolveTimer';
 import { getArrangement } from './lib/arrangements/puzzles';
 import { getTopic } from './lib/topicBank';
@@ -20,12 +21,13 @@ const TABS = [
   ['progress', 'Progress', 'M4 19V10M10 19V5M16 19v-7M22 19H2'],
 ] as const;
 type Tab = (typeof TABS)[number][0];
-type Route = { tab: Tab | 'arrangements' | 'topics'; param?: string };
+type Route = { tab: Tab | 'arrangements' | 'topics' | 'favorites'; param?: string };
 
 const readRoute = (): Route => {
   const [h, param] = location.hash.replace('#', '').split('/');
   if (h === 'arrangements') return { tab: 'arrangements', param };
   if (h === 'topics') return { tab: 'topics', param };
+  if (h === 'favorites') return { tab: 'favorites' };
   // old Learn tab removed — fall back to practice
   if (h === 'learn') return { tab: 'practice' };
   return { tab: TABS.some(([t]) => t === h) ? (h as Tab) : 'practice', param };
@@ -37,6 +39,7 @@ const TITLES: Record<string, [string, string]> = {
   progress: ['Progress', 'Prep checklist + practice analytics.'],
   arrangements: ['Arrangements', 'Learn puzzles · notes on the right · Solve to animate.'],
   topics: ['Exam topics', 'One quiz per topic, taken from every 2025 paper.'],
+  favorites: ['Favourites', 'Only questions you starred — one list for everything.'],
 };
 
 function Glyph({ d }: { d: string }) {
@@ -101,6 +104,22 @@ export default function App() {
           ))}
           <div className="side-foot">
             <button
+              className={`navbtn fav-nav ${tab === 'favorites' ? 'on' : ''}`}
+              title="Favourites"
+              aria-label="Favourites"
+              onClick={() => (location.hash = 'favorites')}
+            >
+              <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden>
+                <path
+                  d="M12 3.6l2.4 4.86 5.36.78-3.88 3.78.92 5.34L12 15.9l-4.8 2.52.92-5.34-3.88-3.78 5.36-.78L12 3.6z"
+                  fill={tab === 'favorites' ? 'currentColor' : 'none'}
+                  stroke="currentColor"
+                  strokeWidth="1.8"
+                  strokeLinejoin="round"
+                />
+              </svg>
+            </button>
+            <button
               className="navbtn theme-toggle"
               title={theme === 'light' ? 'Dark mode' : 'Light mode'}
               aria-label={theme === 'light' ? 'Switch to dark mode' : 'Switch to light mode'}
@@ -143,6 +162,8 @@ export default function App() {
             ) : (
               <TopicList onOpen={id => (location.hash = `topics/${id}`)} onBack={() => (location.hash = 'practice')} />
             )
+          ) : tab === 'favorites' ? (
+            <FavoritesPage />
           ) : tab === 'tournament' ? (
             <Tournament cfg={cfg} update={update} start={start} />
           ) : tab === 'progress' ? (
