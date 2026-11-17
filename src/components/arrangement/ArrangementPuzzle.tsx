@@ -5,6 +5,7 @@ import type { ArrangementQuestion } from '../../lib/arrangements/types';
 import { loadStats, saveStats } from '../../lib/storage';
 import { getTopicNotes } from '../../lib/topicNotes';
 import { saveAttempt, uuid, type AnswerLog } from '../../lib/api';
+import { useSolveTimerQuestion } from '../SolveTimer';
 import SolvePlayer from './SolvePlayer';
 import SeatDiagram from './SeatDiagram';
 import { seatsFinal } from '../../lib/arrangements/state';
@@ -78,6 +79,9 @@ export default function ArrangementPuzzle({ puzzleId, onBack }: Props) {
     [puzzle, checked, flushAttempt],
   );
 
+  const openId = puzzle ? (expanded ?? puzzle.questions[0]?.id ?? null) : null;
+  useSolveTimerQuestion(puzzle && openId ? `arrangements:${puzzle.id}:${openId}` : null);
+
   if (!puzzle) {
     return (
       <div className="card">
@@ -90,7 +94,6 @@ export default function ArrangementPuzzle({ puzzleId, onBack }: Props) {
   }
 
   const doneCount = Object.keys(checked).length;
-  const openId = expanded ?? puzzle.questions[0]?.id ?? null;
 
   return (
     <div className="topic-learn">

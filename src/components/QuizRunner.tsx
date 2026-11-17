@@ -4,6 +4,7 @@ import { makeQ, shuffle, type Q } from '../lib/engine';
 import { loadStats, saveStats } from '../lib/storage';
 import { saveAttempt, uuid, type AnswerLog } from '../lib/api';
 import { fmtTime } from './ui';
+import { useSolveTimerQuestion } from './SolveTimer';
 
 export type Session = {
   key: number;
@@ -36,6 +37,7 @@ export default function QuizRunner({ session, onExit, onRetry }: { session: Sess
   const q = qs[i]!;
   const locked = given !== null;
   const ok = locked && given === q.ans;
+  useSolveTimerQuestion(result ? null : `practice:${q.id}`);
 
   useEffect(() => {
     qStart.current = Date.now();

@@ -4,6 +4,7 @@ import { getTopic, type TopicQuestion, type TopicSet } from '../../lib/topicBank
 import { needsMissingFigure, usableQuestions } from '../../lib/questionContext';
 import { getTopicNotes } from '../../lib/topicNotes';
 import { loadStats, saveStats } from '../../lib/storage';
+import { useSolveTimerQuestion } from '../SolveTimer';
 import QuestionMedia from './QuestionMedia';
 
 type Props = { topicId: string; onBack: () => void };
@@ -167,6 +168,7 @@ function LearnMode({
   const list = showIncomplete ? topic.questions : practicePool;
   const counts = useMemo(() => quizCounts(Math.max(practicePool.length, 1)), [practicePool.length]);
   const [expanded, setExpanded] = useState<string | null>(list[0]?.id ?? null);
+  useSolveTimerQuestion(expanded ? `topics:${topic.id}:${expanded}` : null);
   const notesHtml = useMemo(() => {
     const md = getTopicNotes(topic.id);
     if (!md) return '';
@@ -385,6 +387,7 @@ function QuizMode({
 }) {
   const total = deck.length;
   const q = deck[Math.min(qi, Math.max(total - 1, 0))];
+  useSolveTimerQuestion(!done && q ? `topics:${topic.id}:${q.id}` : null);
   const given = q ? picked[q.id] : undefined;
   const locked = given !== undefined;
   const ok = locked && given === q!.answer;

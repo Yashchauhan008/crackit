@@ -54,12 +54,27 @@ body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 system-ui,-app
 button,input,select{font:inherit}
 
 .app{display:grid;grid-template-columns:76px 1fr;min-height:100vh;background:var(--bg)}
-.side{display:flex;flex-direction:column;align-items:center;gap:8px;padding:18px 12px;background:var(--side);border-right:1px solid var(--line)}
-.logo{width:42px;height:42px;border-radius:14px;background:var(--accent);color:var(--accent-ink);display:grid;place-items:center;font-weight:700;text-decoration:none;margin-bottom:10px}
-.navbtn{width:42px;height:42px;border-radius:14px;border:0;background:transparent;color:var(--muted);display:grid;place-items:center;cursor:pointer}
+.side{position:sticky;top:0;align-self:start;height:100vh;height:100dvh;display:flex;flex-direction:column;align-items:center;gap:8px;padding:18px 12px;background:var(--side);border-right:1px solid var(--line);overflow:hidden}
+.logo{width:42px;height:42px;border-radius:14px;background:var(--accent);color:var(--accent-ink);display:grid;place-items:center;font-weight:700;text-decoration:none;margin-bottom:10px;flex-shrink:0}
+.navbtn{width:42px;height:42px;border-radius:14px;border:0;background:transparent;color:var(--muted);display:grid;place-items:center;cursor:pointer;flex-shrink:0}
 .navbtn:hover{background:var(--raised);color:var(--ink)}
 .navbtn.on{background:var(--accent);color:var(--accent-ink)}
-.theme-toggle{margin-top:auto}
+.side-foot{margin-top:auto;display:flex;flex-direction:column;align-items:center;gap:8px;flex-shrink:0;padding-top:8px}
+.theme-toggle{margin-top:0}
+.side-timer{display:flex;flex-direction:column;align-items:center;gap:6px;width:100%}
+.side-timer-btns{display:flex;flex-direction:column;align-items:center;gap:6px}
+.side-timer-btn{width:42px;height:42px;border-radius:14px;border:1px solid var(--line);background:var(--card);color:var(--muted);display:grid;place-items:center;cursor:pointer;padding:0}
+.side-timer-btn:hover:not(:disabled){color:var(--ink);background:var(--raised)}
+.side-timer-btn:disabled{opacity:.38;cursor:default}
+.side-timer-btn.diamond.on{color:var(--ok);border-color:color-mix(in srgb,var(--ok) 45%,var(--line));background:var(--ok-bg)}
+.side-timer-btn.pause.on{color:var(--warm);border-color:color-mix(in srgb,var(--warm) 45%,var(--line));background:var(--warm-bg)}
+.side-timer-btn.circle.on{color:var(--bad);border-color:color-mix(in srgb,var(--bad) 45%,var(--line));background:var(--bad-bg)}
+.side-timer-readout{display:flex;flex-direction:column;align-items:center;gap:1px;font-variant-numeric:tabular-nums;line-height:1.15;min-height:2.2em}
+.side-timer-live{font-size:.78rem;font-weight:700;color:var(--ink)}
+.side-timer-idle{font-size:.72rem;color:var(--muted)}
+.side-timer-last{font-size:.62rem;font-weight:600;color:var(--muted);letter-spacing:.01em}
+.side-timer.running .side-timer-live{color:var(--ok)}
+.side-timer.paused .side-timer-live{color:var(--warm)}
 .maincol{min-width:0;padding:22px 28px 48px}
 .pagehead{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:18px}
 .pagehead h1{font-size:1.45rem;font-weight:650;margin:0;letter-spacing:-.02em}
@@ -408,9 +423,14 @@ code{background:var(--raised);padding:1px 6px;border-radius:6px;font-size:.9em}
 @keyframes arr-pop-row{0%{transform:scale(.86)}60%{transform:scale(1.06)}100%{transform:scale(1)}}
 @media (max-width:760px){
   .app{grid-template-columns:1fr}
-  .side{flex-direction:row;border-right:0;border-bottom:1px solid var(--line);padding:10px 12px;align-items:center}
+  .side{position:sticky;top:0;z-index:20;height:auto;flex-direction:row;flex-wrap:wrap;border-right:0;border-bottom:1px solid var(--line);padding:10px 12px;align-items:center;overflow:visible}
   .logo{margin:0 6px 0 0}
-  .theme-toggle{margin-top:0;margin-left:auto}
+  .side-foot{margin-top:0;margin-left:auto;flex-direction:row;align-items:center;gap:8px;padding-top:0}
+  .theme-toggle{margin-top:0}
+  .side-timer{flex-direction:row;width:auto;gap:8px}
+  .side-timer-btns{flex-direction:row;gap:4px}
+  .side-timer-btn{width:36px;height:36px;border-radius:12px}
+  .side-timer-readout{align-items:flex-start;min-height:0}
   .maincol{padding:16px}
 }
 @media (max-width:480px){

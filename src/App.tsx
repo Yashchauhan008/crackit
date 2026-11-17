@@ -10,6 +10,7 @@ import ArrangementList from './components/arrangement/ArrangementList';
 import ArrangementPuzzle from './components/arrangement/ArrangementPuzzle';
 import TopicList from './components/topics/TopicList';
 import TopicQuiz from './components/topics/TopicQuiz';
+import { SolveTimerProvider, SideSolveTimer } from './components/SolveTimer';
 import { getArrangement } from './lib/arrangements/puzzles';
 import { getTopic } from './lib/topicBank';
 
@@ -87,65 +88,70 @@ export default function App() {
   const [title, blurb] = heading;
 
   return (
-    <div className={`app ${inLesson ? 'in-lesson' : ''}`}>
-      <aside className="side">
-        <a className="logo" href="#practice" aria-label="CrackIt">
-          C
-        </a>
-        {TABS.map(([id, label, d]) => (
-          <button key={id} className={`navbtn ${navOn === id ? 'on' : ''}`} title={label} aria-label={label} onClick={() => (location.hash = id)}>
-            <Glyph d={d} />
-          </button>
-        ))}
-        <button
-          className="navbtn theme-toggle"
-          title={theme === 'light' ? 'Dark mode' : 'Light mode'}
-          aria-label={theme === 'light' ? 'Switch to dark mode' : 'Switch to light mode'}
-          onClick={() => setTheme(t => toggleTheme(t))}
-        >
-          {theme === 'light' ? (
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-              <path d="M21 14.5A8.5 8.5 0 1 1 9.5 3 7 7 0 0 0 21 14.5z" />
-            </svg>
-          ) : (
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
-              <circle cx="12" cy="12" r="4" />
-              <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41" />
-            </svg>
+    <SolveTimerProvider>
+      <div className={`app ${inLesson ? 'in-lesson' : ''}`}>
+        <aside className="side">
+          <a className="logo" href="#practice" aria-label="CrackIt">
+            C
+          </a>
+          {TABS.map(([id, label, d]) => (
+            <button key={id} className={`navbtn ${navOn === id ? 'on' : ''}`} title={label} aria-label={label} onClick={() => (location.hash = id)}>
+              <Glyph d={d} />
+            </button>
+          ))}
+          <div className="side-foot">
+            <button
+              className="navbtn theme-toggle"
+              title={theme === 'light' ? 'Dark mode' : 'Light mode'}
+              aria-label={theme === 'light' ? 'Switch to dark mode' : 'Switch to light mode'}
+              onClick={() => setTheme(t => toggleTheme(t))}
+            >
+              {theme === 'light' ? (
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                  <path d="M21 14.5A8.5 8.5 0 1 1 9.5 3 7 7 0 0 0 21 14.5z" />
+                </svg>
+              ) : (
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                  <circle cx="12" cy="12" r="4" />
+                  <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41" />
+                </svg>
+              )}
+            </button>
+            <SideSolveTimer />
+          </div>
+        </aside>
+        <div className="maincol">
+          {!inLesson && (
+            <header className="pagehead">
+              <div>
+                <h1>{title}</h1>
+                <p>{blurb}</p>
+              </div>
+            </header>
           )}
-        </button>
-      </aside>
-      <div className="maincol">
-        {!inLesson && (
-          <header className="pagehead">
-            <div>
-              <h1>{title}</h1>
-              <p>{blurb}</p>
-            </div>
-          </header>
-        )}
-        {session ? (
-          <QuizRunner key={session.key} session={session} onExit={exit} onRetry={retry} />
-        ) : tab === 'arrangements' ? (
-          param ? (
-            <ArrangementPuzzle puzzleId={param} onBack={() => (location.hash = 'arrangements')} />
+          {session ? (
+            <QuizRunner key={session.key} session={session} onExit={exit} onRetry={retry} />
+          ) : tab === 'arrangements' ? (
+            param ? (
+              <ArrangementPuzzle puzzleId={param} onBack={() => (location.hash = 'arrangements')} />
+            ) : (
+              <ArrangementList onOpen={id => (location.hash = `arrangements/${id}`)} onBack={() => (location.hash = 'practice')} />
+            )
+          ) : tab === 'topics' ? (
+            param ? (
+              <TopicQuiz topicId={param} onBack={() => (location.hash = 'practice')} />
+            ) : (
+              <TopicList onOpen={id => (location.hash = `topics/${id}`)} onBack={() => (location.hash = 'practice')} />
+            )
+          ) : tab === 'tournament' ? (
+            <Tournament cfg={cfg} update={update} start={start} />
+          ) : tab === 'progress' ? (
+            <Progress cfg={cfg} start={start} />
           ) : (
-            <ArrangementList onOpen={id => (location.hash = `arrangements/${id}`)} onBack={() => (location.hash = 'practice')} />
-          )
-        ) : tab === 'topics' ? (
-          param ? (
-            <TopicQuiz topicId={param} onBack={() => (location.hash = 'practice')} />
-          ) : (
-            <TopicList onOpen={id => (location.hash = `topics/${id}`)} onBack={() => (location.hash = 'practice')} />
-          )
-        ) : tab === 'tournament' ? (
-          <Tournament cfg={cfg} update={update} start={start} />
-        ) : tab === 'progress' ? (
-          <Progress cfg={cfg} start={start} />
-        ) : (
-          <Practice cfg={cfg} update={update} start={start} />
-        )}
+            <Practice cfg={cfg} update={update} start={start} />
+          )}
+        </div>
       </div>
-    </div>
+    </SolveTimerProvider>
   );
 }
